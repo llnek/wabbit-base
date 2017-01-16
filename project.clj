@@ -9,9 +9,8 @@
   :url "https://github.com/llnek/wabbit-base"
 
   :dependencies [[org.apache.commons/commons-lang3 "3.5"]
-                 [commons-io/commons-io "2.5"]
-                 [io.czlab/antclj "0.1.0"]
-                 [io.czlab/twisty "0.1.0"]]
+                 [io.czlab/xlib "0.1.0"]
+                 [commons-io/commons-io "2.5"]]
 
   :plugins [[lein-codox "0.10.2"]
             [lein-czlab "0.1.1"]
