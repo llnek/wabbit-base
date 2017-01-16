@@ -23,6 +23,7 @@
 
   (:import [org.apache.commons.lang3.text StrSubstitutor]
            [org.apache.commons.io FileUtils]
+           [czlab.wabbit.base Component]
            [czlab.xlib Muble I18N]
            [java.io IOException File]))
 
@@ -95,6 +96,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defmacro gtid "typeid of component" [obj] `(:typeid (meta ~obj)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+(defmacro logcomp
+  ""
+  [pfx co]
+  `(log/info "%s: '%s'# '%s'" ~pfx (gtid ~co) (.id ~co)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+(defmulti comp->init
+  "Initialize component" ^Component (fn [a _] (:typeid (meta a))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+(defmethod comp->init :default [co _]
+  (log/warn "No init defined for comp: %s" co) co)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
