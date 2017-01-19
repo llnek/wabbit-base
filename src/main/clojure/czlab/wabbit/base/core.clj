@@ -60,6 +60,7 @@
 (def ^String dn-etc "etc" )
 
 (def ^String dn-rcprops  "Resources_en.properties" )
+(def ^String c-rcprops  "Resources_%s.properties" )
 (def ^String dn-templates  "templates" )
 
 (def ^String dn-logs "logs" )
@@ -85,7 +86,9 @@
 (def ^String mn-lic (str meta-inf "/" "LICENSE.txt"))
 
 (def ^String pod-cf  "pod.conf" )
-(def ^String cfg-pod-cf  (str dn-conf  "/"  pod-cf ))
+(def ^String cfg-pod-cf  (str dn-conf "/" pod-cf))
+(def ^String cfg-pub-pages  (str dn-pub "/" dn-pages))
+
 
 (def jslot-flatline :____flatline)
 (def evt-opts :____eventoptions)
@@ -102,17 +105,7 @@
 (defmacro logcomp
   ""
   [pfx co]
-  `(log/info "%s: '%s'# '%s'" ~pfx (gtid ~co) (.id ~co)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-(defmulti comp->init
-  "Initialize component" ^Component (fn [a _] (:typeid (meta a))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-(defmethod comp->init :default [co _]
-  (log/warn "No init defined for comp: %s" co) co)
+  `(log/info "%s: {%s}#<%s>" ~pfx (gtid ~co) (.id ~co)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
