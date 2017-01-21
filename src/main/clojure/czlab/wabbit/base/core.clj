@@ -11,20 +11,20 @@
 
   czlab.wabbit.base.core
 
-  (:require [czlab.xlib.resources :refer [rstr]]
-            [czlab.xlib.logging :as log]
+  (:require [czlab.basal.resources :refer [rstr]]
+            [czlab.basal.logging :as log]
             [clojure.string :as cs]
             [clojure.java.io :as io])
 
-  (:use [czlab.xlib.format]
-        [czlab.xlib.core]
-        [czlab.xlib.io]
-        [czlab.xlib.str])
+  (:use [czlab.basal.format]
+        [czlab.basal.core]
+        [czlab.basal.io]
+        [czlab.basal.str])
 
   (:import [org.apache.commons.lang3.text StrSubstitutor]
            [org.apache.commons.io FileUtils]
            [czlab.wabbit.base Component]
-           [czlab.xlib Muble I18N]
+           [czlab.jasal Muble I18N]
            [java.io IOException File]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

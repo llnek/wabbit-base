@@ -10,9 +10,9 @@
 
 package czlab.wabbit.base;
 
-import czlab.xlib.Identifiable;
-import czlab.xlib.Versioned;
-import czlab.xlib.Context;
+import czlab.jasal.Identifiable;
+import czlab.jasal.Versioned;
+import czlab.jasal.Context;
 
 /**
  * @author Kenneth Leung

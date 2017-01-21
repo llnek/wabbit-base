@@ -10,7 +10,7 @@
 
 package czlab.wabbit.base;
 
-import czlab.xlib.Hierarchial;
+import czlab.jasal.Hierarchial;
 
 /**
  * @author Kenneth Leung
