@@ -117,7 +117,7 @@
 ;;
 (defn getProcDir
   ""
-  ^File [] (io/file (System/getProperty "wabbit.proc.dir")))
+  ^File [] (io/file (System/getProperty "wabbit.user.dir")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -162,7 +162,7 @@
      (-> (io/file file)
          (changeContent
            #(-> (cs/replace %
-                            "${pod.dir}" "${wabbit.proc.dir}")
+                            "${pod.dir}" "${wabbit.user.dir}")
                 (expandVars ))))
      (log/debug "[%s]\n%s" file))))
 
@@ -214,7 +214,7 @@
        (if expVars?
          (-> (cs/replace s
                          "${pod.dir}"
-                         "${wabbit.proc.dir}")
+                         "${wabbit.user.dir}")
              (expandVars))
          s)
        (readEdn )))))
