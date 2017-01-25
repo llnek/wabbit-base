@@ -59,7 +59,7 @@
 (def ^String dn-cfgweb "etc/web" )
 (def ^String dn-etc "etc" )
 
-(def ^String dn-rcprops  "Resources_en.properties" )
+(def ^String en-rcprops  "Resources_en.properties" )
 (def ^String c-rcprops  "Resources_%s.properties" )
 (def ^String dn-templates  "templates" )
 
