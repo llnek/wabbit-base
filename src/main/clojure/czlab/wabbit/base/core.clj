@@ -89,7 +89,6 @@
 (def ^String cfg-pod-cf  (str dn-conf "/" pod-cf))
 (def ^String cfg-pub-pages  (str dn-pub "/" dn-pages))
 
-
 (def jslot-flatline :____flatline)
 (def evt-opts :____eventoptions)
 (def jslot-last :____lastresult)
@@ -102,22 +101,13 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defmacro logcomp
-  ""
-  [pfx co]
+(defmacro logcomp "" [pfx co]
   `(log/info "%s: {%s}#<%s>" ~pfx (gtid ~co) (.id ~co)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn getHomeDir
-  ""
-  ^File [] (io/file (System/getProperty "wabbit.home.dir")))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-(defn getProcDir
-  ""
-  ^File [] (io/file (System/getProperty "wabbit.user.dir")))
+(defn getProcDir "" ^File []
+  (io/file (System/getProperty "wabbit.user.dir")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -137,7 +127,7 @@
   [^String value]
   (if (nichts? value)
     value
-    (.replace (StrSubstitutor. (System/getenv)) value)))
+    (-> (System/getenv) StrSubstitutor. (.replace value))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -147,8 +137,7 @@
   [^String value]
   (if (nichts? value)
     value
-    (-> (expandSysProps value)
-        (expandEnvVars ))))
+    (-> value expandSysProps expandEnvVars)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -163,7 +152,7 @@
          (changeContent
            #(-> (cs/replace %
                             "${pod.dir}" "${wabbit.user.dir}")
-                (expandVars ))))
+                expandVars )))
      (log/debug "[%s]\n%s" file))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -171,22 +160,20 @@
 (defn ^:no-doc precondDir
   "Assert folder(s) are read-writeable?"
   [f & dirs]
-  (doseq [d (cons f dirs)]
-    (test-cond (rstr (I18N/base)
-                     "dir.no.rw" d)
-               (dirReadWrite? d)))
-  true)
+  (do->true
+    (doseq [d (cons f dirs)]
+      (test-cond (rstr (I18N/base)
+                       "dir.no.rw" d) (dirReadWrite? d)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;asserts that the file is readable
 (defn ^:no-doc precondFile
   "Assert file(s) are readable?"
   [ff & files]
-  (doseq [f (cons ff files)]
-    (test-cond (rstr (I18N/base)
-                     "file.no.r" f)
-               (fileRead? f)))
-  true)
+  (do->true
+    (doseq [f (cons ff files)]
+      (test-cond (rstr (I18N/base)
+                       "file.no.r" f) (fileRead? f)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -205,19 +192,19 @@
 ;;
 (defn slurpXXXConf
   "Parse config file"
-  ([podDir conf] (slurpXXXConf podDir conf false))
+  ([podDir conf]
+   (slurpXXXConf podDir conf false))
   ([podDir conf expVars?]
    (let [f (io/file podDir conf)
-         s (str "{\n"
-                (slurpUtf8 f) "\n}")]
+         s (str "{\n" (slurpUtf8 f) "\n}")]
      (->
        (if expVars?
          (-> (cs/replace s
                          "${pod.dir}"
                          "${wabbit.user.dir}")
-             (expandVars))
+             expandVars)
          s)
-       (readEdn )))))
+       readEdn ))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -227,8 +214,7 @@
   (let [f (io/file podDir conf)
         s (strim (writeEdnStr cfgObj))]
     (->>
-      (if (and (.startsWith s "{")
-               (.endsWith s "}"))
+      (if (wrapped? s "{" "}")
         (-> (drophead s 1)
             (droptail 1))
         s)
@@ -236,19 +222,14 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn deleteDir
-  ""
-  [dir]
+(defn deleteDir "" [dir]
   (try! (FileUtils/deleteDirectory (io/file dir))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defn cleanDir
-  ""
-  [dir]
+(defn cleanDir "" [dir]
   (try! (FileUtils/cleanDirectory (io/file dir))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF
-
 
