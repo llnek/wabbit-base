@@ -135,9 +135,11 @@
   "Replaces all system & env variables in the value"
   ^String
   [^String value]
-  (if (nichts? value)
+  (if (or (nichts? value)
+          (< (.indexOf value "${") 0))
     value
-    (-> value expandSysProps expandEnvVars)))
+    (-> (cs/replace value "${pod.dir}" "${wabbit.user.dir}")
+        expandSysProps expandEnvVars)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -149,10 +151,7 @@
   ([file]
    (doto->>
      (-> (io/file file)
-         (changeContent
-           #(-> (cs/replace %
-                            "${pod.dir}" "${wabbit.user.dir}")
-                expandVars )))
+         (changeContent #(expandVars %)))
      (log/debug "[%s]\n%s" file))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
