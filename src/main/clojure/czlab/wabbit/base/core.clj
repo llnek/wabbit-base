@@ -13,6 +13,7 @@
 
   (:require [czlab.basal.resources :refer [rstr]]
             [czlab.basal.logging :as log]
+            [clojure.walk :as cw]
             [clojure.string :as cs]
             [clojure.java.io :as io])
 
@@ -140,6 +141,21 @@
     value
     (-> (cs/replace value "${pod.dir}" "${wabbit.user.dir}")
         expandSysProps expandEnvVars)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+(declare expandVarsInForm)
+(defn- walkColl "" [c]
+  (let [r (mapv #(expandVarsInForm %) c)]
+    (if (list? c) (into '() (reverse r)) r)))
+(defn- walkSet "" [s] (into #{} (map #(expandVarsInForm %) s)))
+(defn- walkMap "" [m]
+  (preduce<map> #(let [[k v] %2] (assoc! %1 k (expandVarsInForm v))) m))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+(defn expandVarsInForm "" [form]
+  (cw/postwalk #(if (string? %) (expandVars %) %) form))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
