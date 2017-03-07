@@ -36,15 +36,16 @@
 (def ^String c-verprops "czlab/wabbit/base/version.properties")
 (def ^String c-rcb "czlab.wabbit.base/Resources")
 
-(def ^:private ^String sys-devid-pfx "system.####")
-(def ^:private ^String sys-devid-sfx "####")
+;(def ^:private ^String sys-devid-pfx "system.####")
+;(def ^:private ^String sys-devid-sfx "####")
 
-(def sys-devid-regex #"system::[0-9A-Za-z_\-\.]+" )
-(def shutdown-devid #"system::kill_9" )
-(def ^String dft-dbid "default")
+;(def sys-devid-regex #"system::[0-9A-Za-z_\-\.]+" )
+;(def shutdown-devid #"system::kill_9" )
+;(def ^String pod-protocol  "pod:" )
 
 (def ^String shutdown-uri "/kill9")
-(def ^String pod-protocol  "pod:" )
+(def ^String dft-dbid "default")
+
 (def ^String meta-inf  "META-INF" )
 (def ^String web-inf  "WEB-INF" )
 
@@ -90,9 +91,10 @@
 (def ^String cfg-pod-cf  (str dn-conf "/" pod-cf))
 (def ^String cfg-pub-pages  (str dn-pub "/" dn-pages))
 
-(def jslot-flatline :____flatline)
+;(def jslot-flatline :____flatline)
+;(def jslot-last :____lastresult)
+
 (def evt-opts :____eventoptions)
-(def jslot-last :____lastresult)
 (def jslot-cred :credential)
 (def jslot-user :principal)
 
@@ -102,7 +104,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defmacro logcomp "" [pfx co]
+(defmacro logcomp "Internal" [pfx co]
   `(log/info "%s: {%s}#<%s>" ~pfx (gtid ~co) (.id ~co)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -113,27 +115,22 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn expandSysProps
-  "Expand any system properties found inside the string value"
-  ^String
-  [^String value]
-  (if (nichts? value)
-    value
-    (StrSubstitutor/replaceSystemProperties value)))
+  "Expand system properties found in value"
+  ^String [^String value]
+  (if (nichts? value) value (StrSubstitutor/replaceSystemProperties value)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn expandEnvVars
-  "Expand any env-vars found inside the string value"
-  ^String
-  [^String value]
-  (if (nichts? value)
-    value
-    (-> (System/getenv) StrSubstitutor. (.replace value))))
+  "Expand env vars found in value"
+  ^String [^String value]
+  (if (nichts? value) value (-> (System/getenv)
+                                StrSubstitutor. (.replace value))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn expandVars
-  "Replaces all system & env variables in the value"
+  "Replaces all variables in value"
   ^String
   [^String value]
   (if (or (nichts? value)
@@ -144,26 +141,17 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(declare expandVarsInForm)
-(defn- walkColl "" [c]
-  (let [r (mapv #(expandVarsInForm %) c)]
-    (if (list? c) (into '() (reverse r)) r)))
-(defn- walkSet "" [s] (into #{} (map #(expandVarsInForm %) s)))
-(defn- walkMap "" [m]
-  (preduce<map> #(let [[k v] %2] (assoc! %1 k (expandVarsInForm v))) m))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
 (defn expandVarsInForm "" [form]
   (cw/postwalk #(if (string? %) (expandVars %) %) form))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn readConf
-  "Parse a edn configuration file"
-  {:tag String}
+  "Parse a edn configuration file" {:tag String}
+
   ([podDir confile]
    (readConf (io/file podDir dn-conf confile)))
+
   ([file]
    (doto->>
      (-> (io/file file)
@@ -173,8 +161,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;asserts that the directory is readable & writable.
 (defn ^:no-doc precondDir
-  "Assert folder(s) are read-writeable?"
-  [f & dirs]
+  "Assert dir(s) are read-writeable?" [f & dirs]
   (do->true
     (doseq [d (cons f dirs)]
       (test-cond (rstr (I18N/base)
@@ -183,8 +170,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;asserts that the file is readable
 (defn ^:no-doc precondFile
-  "Assert file(s) are readable?"
-  [ff & files]
+  "Assert file(s) are readable?" [ff & files]
   (do->true
     (doseq [f (cons ff files)]
       (test-cond (rstr (I18N/base)
