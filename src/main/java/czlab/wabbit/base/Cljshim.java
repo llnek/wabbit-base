@@ -31,6 +31,14 @@ public class Cljshim implements java.io.Closeable {
   }
 
   /**
+   *
+   * @param cl
+   */
+  public static Cljshim newrt(ClassLoader cl) {
+    return new Cljshim(cl,"?");
+  }
+
+  /**
    */
   public void require(String... namespaces) {
     for (String ns : namespaces) {
