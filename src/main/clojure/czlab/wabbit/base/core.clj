@@ -19,13 +19,15 @@
 
   (:use [czlab.basal.format]
         [czlab.basal.core]
+        [czlab.basal.meta]
         [czlab.basal.io]
         [czlab.basal.str])
 
   (:import [org.apache.commons.lang3.text StrSubstitutor]
-           [org.apache.commons.io FileUtils]
            [czlab.wabbit.base Component]
+           [org.apache.commons.io FileUtils]
            [czlab.jasal Muble I18N]
+           [czlab.basal Cljrt]
            [java.io IOException File]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -220,6 +222,27 @@
             (droptail 1))
         s)
       (spitUtf8 f))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+(defn varit
+  "From this name, find the var" [^String n]
+
+  (let-try
+    [clj (Cljrt/newrt (getCldr) "x")]
+    (if (hgl? n) (.varIt clj n))
+    (finally (.close clj))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+(defn prevarCfg ""
+
+  ([cfg] (prevarCfg cfg :handler))
+  ([cfg kee]
+   (if-some+ [n (strKW (get cfg kee))]
+     (let [v (varit n)]
+       (assoc cfg kee v))
+     cfg)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
