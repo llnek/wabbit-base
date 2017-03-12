@@ -89,7 +89,7 @@ public class Cljshim implements java.io.Closeable {
 
   /**
    */
-  private Var varIt(String fname) {
+  public Var varIt(String fname) {
     try {
       Var var = (Var) _resolve.invoke(Symbol.create(fname));
       if (var == null) {
