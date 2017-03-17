@@ -193,6 +193,11 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
+(defn expandXXXConf
+  "" [cfgObj] (-> (writeEdnStr cfgObj) expandVars readEdn ))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 (defn slurpXXXConf
   "Parse config file"
   ([podDir conf]
