@@ -10,14 +10,14 @@
 
 package czlab.wabbit.base;
 
-import czlab.jasal.Identifiable;
+import czlab.jasal.Idable;
 import czlab.jasal.Versioned;
 import czlab.jasal.Context;
 
 /**
  * @author Kenneth Leung
  */
-public interface Component extends Context, Identifiable, Versioned {
+public interface Component extends Context, Idable, Versioned {
 
 }
 
