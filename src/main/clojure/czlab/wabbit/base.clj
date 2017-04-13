@@ -9,7 +9,7 @@
 (ns ^{:doc ""
       :author "Kenneth Leung"}
 
-  czlab.wabbit.base.core
+  czlab.wabbit.base
 
   (:require [czlab.basal.resources :refer [rstr]]
             [czlab.basal.logging :as log]
@@ -24,7 +24,6 @@
         [czlab.basal.str])
 
   (:import [org.apache.commons.lang3.text StrSubstitutor]
-           [czlab.wabbit.base Component]
            [org.apache.commons.io FileUtils]
            [czlab.jasal Muble I18N]
            [czlab.basal Cljrt]
