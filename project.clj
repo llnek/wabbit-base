@@ -13,16 +13,13 @@
                  [commons-io/commons-io "2.5"]]
 
   :plugins [[cider/cider-nrepl "0.14.0"]
-            [lein-javadoc "0.3.0"]
             [lein-codox "0.10.3"]
             [lein-czlab "1.0.0"]
             [lein-cprint "1.2.0"]]
   :hooks [leiningen.lein-czlab]
 
   :profiles {:provided {:dependencies
-                        [[org.clojure/clojure "1.8.0" :scope "provided"]
-                         [net.mikera/cljunit "0.6.0" :scope "test"]
-                         [junit/junit "4.12" :scope "test"]]}
+                        [[org.clojure/clojure "1.8.0" :scope "provided"]]}
              :run {:global-vars ^:replace {*warn-on-reflection* false}}
              :uberjar {:aot :all}}
 
