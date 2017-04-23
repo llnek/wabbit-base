@@ -25,7 +25,7 @@
 
   (:import [org.apache.commons.lang3.text StrSubstitutor]
            [org.apache.commons.io FileUtils]
-           [czlab.jasal Muble I18N]
+           [czlab.jasal I18N]
            [czlab.basal Cljrt]
            [java.io IOException File]))
 
@@ -182,8 +182,8 @@
 (defn ^:no-doc maybeDir
   "If the key maps to a File"
   ^File
-  [^Muble m kn]
-  (let [v (.getv m kn)]
+  [m kn]
+  (let [v (get m kn)]
     (condp instance? v
       String (io/file v)
       File v
