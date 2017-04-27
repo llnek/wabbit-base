@@ -101,12 +101,12 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-(defmacro gtid "typeid of component" [obj] `(.toString ~obj))
+(defmacro gtid "typeid of component" [obj] `(str ~obj))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defmacro logcomp "Internal" [pfx co]
-  `(log/info "%s: {%s}#<%s>" ~pfx (gtid ~co) (.id ~co)))
+  `(log/info "%s: {%s}#<%s>" ~pfx (gtid ~co) (id?? ~co)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -243,10 +243,16 @@
 
   ([cfg] (prevarCfg cfg :handler))
   ([cfg kee]
-   (if-some+ [n (strKW (get cfg kee))]
-     (let [v (varit n)]
-       (assoc cfg kee v))
-     cfg)))
+   (let [h (get cfg kee)
+         h (if (keyword? h) (strKW h) h)]
+     (->>
+       (cond
+         (hgl? h) (varit h)
+         (or (var? h)
+             (nil? h)) h
+         :else
+         (trap! Exception "bad handler %s" kee))
+       (assoc cfg kee)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
