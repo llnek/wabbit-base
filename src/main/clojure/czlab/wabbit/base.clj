@@ -11,17 +11,16 @@
 
   czlab.wabbit.base
 
-  (:require [czlab.basal.resources :refer [rstr]]
-            [czlab.basal.logging :as log]
+  (:require [czlab.basal.resources :as r :refer [rstr]]
+            [czlab.basal.log :as log]
             [clojure.walk :as cw]
             [clojure.string :as cs]
-            [clojure.java.io :as io])
-
-  (:use [czlab.basal.format]
-        [czlab.basal.core]
-        [czlab.basal.meta]
-        [czlab.basal.io]
-        [czlab.basal.str])
+            [clojure.java.io :as io]
+            [czlab.basal.format :as f]
+            [czlab.basal.core :as c]
+            [czlab.basal.meta :as m]
+            [czlab.basal.io :as i]
+            [czlab.basal.str :as s])
 
   (:import [org.apache.commons.lang3.text StrSubstitutor]
            [org.apache.commons.io FileUtils]
@@ -92,9 +91,6 @@
 (def ^String cfg-pod-cf  (str dn-conf "/" pod-cf))
 (def ^String cfg-pub-pages  (str dn-pub "/" dn-pages))
 
-;(def jslot-flatline :____flatline)
-;(def jslot-last :____lastresult)
-
 (def evt-opts :____eventoptions)
 (def jslot-cred :credential)
 (def jslot-user :principal)
@@ -106,7 +102,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defmacro logcomp "Internal" [pfx co]
-  `(log/info "%s: {%s}#<%s>" ~pfx (gtid ~co) (id?? ~co)))
+  `(czlab.basal.log/info
+     "%s: {%s}#<%s>" ~pfx
+     (czlab.wabbit.base/gtid ~co) (czlab.basal.core/id?? ~co)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -118,15 +116,15 @@
 (defn expandSysProps
   "Expand system properties found in value"
   ^String [^String value]
-  (if (nichts? value) value (StrSubstitutor/replaceSystemProperties value)))
+  (if (s/nichts? value) value (StrSubstitutor/replaceSystemProperties value)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn expandEnvVars
   "Expand env vars found in value"
   ^String [^String value]
-  (if (nichts? value) value (-> (System/getenv)
-                                StrSubstitutor. (.replace value))))
+  (if (s/nichts? value) value (-> (System/getenv)
+                                  StrSubstitutor. (.replace value))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -134,10 +132,12 @@
   "Replaces all variables in value"
   ^String
   [^String value]
-  (if (or (nichts? value)
+  (if (or (s/nichts? value)
           (< (.indexOf value "${") 0))
     value
-    (-> (cs/replace value "${pod.dir}" "${wabbit.user.dir}")
+    (-> (cs/replace value
+                    "${pod.dir}"
+                    "${wabbit.user.dir}")
         expandSysProps expandEnvVars)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -154,28 +154,28 @@
    (readConf (io/file podDir dn-conf confile)))
 
   ([file]
-   (doto->>
+   (c/doto->>
      (-> (io/file file)
-         (changeContent #(expandVars %)))
+         (i/changeContent #(expandVars %)))
      (log/debug "[%s]\n%s" file))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;asserts that the directory is readable & writable.
 (defn ^:no-doc precondDir
   "Assert dir(s) are read-writeable?" [f & dirs]
-  (do->true
+  (c/do->true
     (doseq [d (cons f dirs)]
-      (test-cond (rstr (I18N/base)
-                       "dir.no.rw" d) (dirReadWrite? d)))))
+      (c/test-cond (r/rstr (I18N/base)
+                           "dir.no.rw" d) (i/dirReadWrite? d)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;asserts that the file is readable
 (defn ^:no-doc precondFile
   "Assert file(s) are readable?" [ff & files]
-  (do->true
+  (c/do->true
     (doseq [f (cons ff files)]
-      (test-cond (rstr (I18N/base)
-                       "file.no.r" f) (fileRead? f)))))
+      (c/test-cond (r/rstr (I18N/base)
+                           "file.no.r" f) (i/fileRead? f)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -187,13 +187,12 @@
     (condp instance? v
       String (io/file v)
       File v
-      (trap! IOException (rstr (I18N/base)
-                               "wabbit.no.dir" kn)))))
+      (c/throwIOE (r/rstr (I18N/base) "wabbit.no.dir" kn)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn expandXXXConf
-  "" [cfgObj] (-> (writeEdnStr cfgObj) expandVars readEdn ))
+  "" [cfgObj] (-> (f/writeEdnStr cfgObj) expandVars f/readEdn))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -203,15 +202,13 @@
    (slurpXXXConf podDir conf false))
   ([podDir conf expVars?]
    (let [f (io/file podDir conf)
-         s (str "{\n" (slurpUtf8 f) "\n}")]
+         s (str "{\n" (i/slurpUtf8 f) "\n}")]
      (->
        (if expVars?
          (-> (cs/replace s
                          "${pod.dir}"
-                         "${wabbit.user.dir}")
-             expandVars)
-         s)
-       readEdn ))))
+                         "${wabbit.user.dir}") expandVars) s)
+       f/readEdn))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -219,23 +216,17 @@
   "Write out config file"
   [podDir conf cfgObj]
   (let [f (io/file podDir conf)
-        s (strim (writeEdnStr cfgObj))]
+        s (s/strim (f/writeEdnStr cfgObj))]
     (->>
-      (if (wrapped? s "{" "}")
-        (-> (drophead s 1)
-            (droptail 1))
-        s)
-      (spitUtf8 f))))
+      (if (s/wrapped? s "{" "}")
+        (-> (s/drophead s 1) (s/droptail 1)) s)
+      (i/spitUtf8 f))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn varit
   "From this name, find the var" [^String n]
-
-  (let-try
-    [clj (Cljrt/newrt (getCldr) "x")]
-    (if (hgl? n) (.varIt clj n))
-    (finally (.close clj))))
+  (with-open [clj (Cljrt/newrt)] (if (s/hgl? n) (.varIt clj n))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -244,25 +235,25 @@
   ([cfg] (prevarCfg cfg :handler))
   ([cfg kee]
    (let [h (get cfg kee)
-         h (if (keyword? h) (strKW h) h)]
+         h (if (keyword? h) (s/strKW h) h)]
      (->>
        (cond
-         (hgl? h) (varit h)
+         (s/hgl? h) (varit h)
          (or (var? h)
              (nil? h)) h
          :else
-         (trap! Exception "bad handler %s" kee))
+         (c/trap! Exception "bad handler %s" kee))
        (assoc cfg kee)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn deleteDir "" [dir]
-  (try! (FileUtils/deleteDirectory (io/file dir))))
+  (c/trye!! nil (FileUtils/deleteDirectory (io/file dir))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 (defn cleanDir "" [dir]
-  (try! (FileUtils/cleanDirectory (io/file dir))))
+  (c/trye!! nil (FileUtils/cleanDirectory (io/file dir))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;EOF
